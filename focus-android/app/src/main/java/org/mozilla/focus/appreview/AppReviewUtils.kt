@@ -33,28 +33,9 @@ class AppReviewUtils {
          *
          * @property activity where In App review is triggered
          */
+        @Suppress("UNUSED_PARAMETER")
         fun showAppReview(activity: Activity) {
-            if (shouldShowInAppReview(activity)) {
-                val manager = ReviewManagerFactory.create(activity)
-                val request = manager.requestReviewFlow()
-                request.addOnCompleteListener { task: Task<ReviewInfo?> ->
-                    if (task.isSuccessful) {
-                        // We can get the ReviewInfo object
-                        val reviewInfo = task.result
-                        val flow = manager.launchReviewFlow(activity, reviewInfo)
-                        flow.addOnCompleteListener {
-                            // The flow has finished. The API does not indicate whether the user
-                            // reviewed or not, or even whether the review dialog was shown. Thus, no
-                            // matter the result, we continue our app flow.
-                            setAppReviewed(activity)
-                        }
-                    } else {
-                        setAppReviewed(activity)
-                        // There was some problem, open PlayStore
-                        openPlayStore(activity = activity)
-                    }
-                }
-            }
+
         }
 
         /**
@@ -106,25 +87,8 @@ class AppReviewUtils {
                 )
         }
 
+        @Suppress("UNUSED_PARAMETER")
         private fun openPlayStore(activity: Activity) {
-            try {
-                activity.startActivity(
-                    Intent(
-                        Intent.ACTION_VIEW,
-                        SupportUtils.RATE_APP_URL.toUri(),
-                    ),
-                )
-            } catch (e: ActivityNotFoundException) {
-                // Device without the play store installed.
-                // Opening the play store website.
-                val tabId = activity.components.tabsUseCases.addTab(
-                    url = SupportUtils.FOCUS_PLAY_STORE_URL,
-                    source = SessionState.Source.Internal.NewTab,
-                    selectTab = true,
-                    private = true,
-                )
-                activity.components.appStore.dispatch(AppAction.OpenTab(tabId))
-            }
         }
 
         private fun setAppReviewed(activity: Activity) {
